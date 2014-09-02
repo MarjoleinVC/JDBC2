@@ -37,88 +37,82 @@ public class Programma {
     public static void main(String[] args) {
         try (Scanner keuze = new Scanner(System.in)) {
             String choice = null;
-            while (!"1".equals(choice) || !"2".equals(choice) || !"3".equals(choice)) {
-                System.out.println("Maak uw keuze: ");
-                System.out.println("1 (nieuwe rekening), 2 (saldo consulteren), 3 (overschrijven)");
-                choice = keuze.next();
-                switch (choice) {
-                    case "1":
-                        try (Scanner rekeningnr = new Scanner(System.in)) {
-                            System.out.print("Rekeningnummer: ");
-                            long RekeningNr = rekeningnr.nextLong();
-                            if (validateRekeningnummer(RekeningNr)) {
-                                try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                                        PreparedStatement statement = connection.prepareStatement(SQL_INSERT)) {
-                                    statement.setLong(1, RekeningNr);
-                                    statement.executeUpdate();
-                                } catch (SQLException ex) {
-                                    System.out.println(ex);
-                                }
-                            } else {
-                                System.out.println("Geef een geldig rekeningnummer op.");
-                            }
-                        }
-                        break;
-                    case "2":
-                        try (Scanner rekeningnr = new Scanner(System.in)) {
-                            System.out.print("Rekeningnummer: ");
-                            long RekeningNr = rekeningnr.nextLong();
+            //while (!"1".equals(choice) || !"2".equals(choice) || !"3".equals(choice)) { //invoer controleren
+            System.out.println("Maak uw keuze: \n 1 (nieuwe rekening) \n 2 (saldo consulteren) \n 3 (overschrijven)");
+            choice = keuze.next();
+            switch (choice) {
+                case "1":
+                    try (Scanner rekeningnr = new Scanner(System.in)) {
+                        System.out.print("Rekeningnummer: ");
+                        long RekeningNr = rekeningnr.nextLong();
+                        if (validateRekeningnummer(RekeningNr)) {
                             try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                                    PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
+                                    PreparedStatement statement = connection.prepareStatement(SQL_INSERT)) {
                                 statement.setLong(1, RekeningNr);
-                                try (ResultSet resultSet = statement.executeQuery()) {
-                                    if (resultSet.next()) {
-                                        System.out.println(resultSet.getLong(1) + " " + resultSet.getBigDecimal(2));
-                                    } else {
-                                        System.out.println("Het rekeningnummer werd nog niet aangemaakt.");
-                                    }
-                                }
+                                statement.executeUpdate();
                             } catch (SQLException ex) {
                                 System.out.println(ex);
                             }
+                        } else {
+                            System.out.println("Geef een geldig rekeningnummer op.");
                         }
-                        break;
-                    case "3":
-                        try (Scanner rekeningnr = new Scanner(System.in)) {
-                            System.out.print("Rekeningnummer overschrijver: ");
-                            long rekeningnummerVan = rekeningnr.nextLong();
-                            System.out.print("Rekeningnummer ontvanger: ");
-                            long rekeningnummerAan = rekeningnr.nextLong();
-                            System.out.print("Bedrag van de overschrijving: ");
-                            BigDecimal bedrag = rekeningnr.nextBigDecimal();
-                            if (validateRekeningnummer(rekeningnummerVan)) {
-                                if (validateRekeningnummer(rekeningnummerAan)) {
-                                    if (rekeningnummerVan != rekeningnummerAan) {
-                                        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                                                CallableStatement statement = connection.prepareCall(SQL_CALLUPDATE)) {
-                                            statement.setLong(1, rekeningnummerVan);
-                                            statement.setLong(2, rekeningnummerAan);
-                                            statement.setBigDecimal(3, bedrag);
-                                            statement.executeUpdate();
-                                            /*try (ResultSet resultSet = statement.executeQuery()) {
-                                             while (resultSet.next()) {
-                                             System.out.println(resultSet.getLong("rekeningnummerVan") + " "
-                                             + resultSet.getLong("rekeningnummerAan") + " "
-                                             + resultSet.getBigDecimal("bedrag"));
-                                             }
-                                             }*/
-                                        } catch (SQLException ex) {
-                                            System.out.println(ex);
-                                        }
-
-                                    } else {
-                                        System.out.print("Geef twee verschillende rekeningnummers op.");
-                                    }
+                    }
+                    break;
+                case "2":
+                    try (Scanner rekeningnr = new Scanner(System.in)) {
+                        System.out.print("Rekeningnummer: ");
+                        long RekeningNr = rekeningnr.nextLong();
+                        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                                PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
+                            statement.setLong(1, RekeningNr);
+                            try (ResultSet resultSet = statement.executeQuery()) {
+                                if (resultSet.next()) {
+                                    System.out.println(resultSet.getLong(1) + " " + resultSet.getBigDecimal(2));
                                 } else {
-                                    System.out.print("Geef een correct rekeningnumer om op te storten.");
+                                    System.out.println("Het rekeningnummer werd nog niet aangemaakt.");
                                 }
-                            } else {
+                            }
+                        } catch (SQLException ex) {
+                            System.out.println(ex);
+                        }
+                    }
+                    break;
+                case "3":
+                    try (Scanner rekeningnr = new Scanner(System.in)) {
+                        System.out.print("Rekeningnummer overschrijver: ");
+                        long rekeningnummerVan = rekeningnr.nextLong();
+                        System.out.print("Rekeningnummer ontvanger: ");
+                        long rekeningnummerAan = rekeningnr.nextLong();
+                        System.out.print("Bedrag van de overschrijving: ");
+                        BigDecimal bedrag = rekeningnr.nextBigDecimal();
+                        if (validateRekeningnummer(rekeningnummerVan) && (validateRekeningnummer(rekeningnummerAan)) && (rekeningnummerVan != rekeningnummerAan)) {
+                            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                                    CallableStatement statement = connection.prepareCall(SQL_CALLUPDATE)) {
+                                statement.setLong(1, rekeningnummerVan);
+                                if (RekeningNR = rekeningnummerVan){
+                                    if (Saldo < bedrag){
+                                            System.out.println("Er staat niet genoeg geld op de rekening van de overschrijver.");
+                                    }
+                                }
+                                statement.setLong(2, rekeningnummerAan);
+                                statement.setBigDecimal(3, bedrag);
+                                System.out.println(statement.executeUpdate() + " overschrijving werd uitgevoerd.");
+                            } catch (SQLException ex) {
+                                System.out.println(ex);
+                            }
+                        } else {
+                            if (!validateRekeningnummer(rekeningnummerVan)) {
                                 System.out.print("Geef een correct rekeningnumer om van over te schrijven.");
+                            } else if (!validateRekeningnummer(rekeningnummerAan)) {
+                                System.out.print("Geef een correct rekeningnumer om op te storten.");
+                            } else if ((rekeningnummerVan == rekeningnummerAan)) {
+                                System.out.print("Geef twee verschillende rekeningnummers op.");
                             }
                         }
                         break;
+                    }
                 }
-            }
+            //}
         }
     }
 

@@ -62,18 +62,20 @@ public class Programma {
                     try (Scanner rekeningnr = new Scanner(System.in)) {
                         System.out.print("Rekeningnummer: ");
                         long RekeningNr = rekeningnr.nextLong();
-                        try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                                PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
-                            statement.setLong(1, RekeningNr);
-                            try (ResultSet resultSet = statement.executeQuery()) {
-                                if (resultSet.next()) {
-                                    System.out.println(resultSet.getLong(1) + " " + resultSet.getBigDecimal(2));
-                                } else {
-                                    System.out.println("Het rekeningnummer werd nog niet aangemaakt.");
+                        if (validateRekeningnummer(RekeningNr)) {
+                            try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+                                    PreparedStatement statement = connection.prepareStatement(SQL_SELECT)) {
+                                statement.setLong(1, RekeningNr);
+                                try (ResultSet resultSet = statement.executeQuery()) {
+                                    if (resultSet.next()) {
+                                        System.out.println(resultSet.getLong(1) + " " + resultSet.getBigDecimal(2));
+                                    } else {
+                                        System.out.println("Het rekeningnummer werd nog niet aangemaakt.");
+                                    }
                                 }
+                            } catch (SQLException ex) {
+                                System.out.println(ex);
                             }
-                        } catch (SQLException ex) {
-                            System.out.println(ex);
                         }
                     }
                     break;
@@ -89,14 +91,15 @@ public class Programma {
                             try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
                                     CallableStatement statement = connection.prepareCall(SQL_CALLUPDATE)) {
                                 statement.setLong(1, rekeningnummerVan);
-                                if (RekeningNR = rekeningnummerVan){
-                                    if (Saldo < bedrag){
-                                            System.out.println("Er staat niet genoeg geld op de rekening van de overschrijver.");
-                                    }
-                                }
                                 statement.setLong(2, rekeningnummerAan);
                                 statement.setBigDecimal(3, bedrag);
-                                System.out.println(statement.executeUpdate() + " overschrijving werd uitgevoerd.");
+                                if (statement.executeUpdate() == 0) {
+                                    System.out.println("Er staat niet genoeg geld op de rekening van de overschrijver. De overschrijving werd niet uitgevoerd.");
+                                } else {
+                                    System.out.println("De overschrijving van €" + bedrag
+                                            + " werd uitgevoerd van rekening " + rekeningnummerVan
+                                            + " naar rekening " + rekeningnummerAan + ".");
+                                }
                             } catch (SQLException ex) {
                                 System.out.println(ex);
                             }
@@ -111,7 +114,7 @@ public class Programma {
                         }
                         break;
                     }
-                }
+            }
             //}
         }
     }
